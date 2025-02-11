@@ -220,20 +220,16 @@ public class EcuaAntPanel extends JPanel implements IEntomologo {
         // Preparar la cadena de alimentación
         String alimentacion = String.format("%s inyectada con %s", ingestaNativa, genoAlimento);
         
-        // Verificar si la hormiga vive según las reglas
+        // Verificar si la hormiga vive según las reglas del caso B
         boolean vive = false;
         boolean seTransforma = false;
         
-        // Caso A: Reglas de supervivencia
-        if (tipoHormiga.equals("Larva") && ingestaNativa.equals("Nectarívoros")) {
-            vive = true; // Sobrevive con cualquier genoalimento (X, XY, XX)
-        } else if (tipoHormiga.equals("Soldado") && ingestaNativa.equals("Carnívoro") && genoAlimento.equals("XY")) {
+        // Caso B: HZángano - Omnívoro - inyectada con XX
+        if (tipoHormiga.equals("Larva") && ingestaNativa.equals("Omnívoro") && genoAlimento.equals("XY")) {
             vive = true;
-        }
-        
-        // Verificar transformación
-        if (vive && tipoHormiga.equals("Larva") && ingestaNativa.equals("Carnívoro") && genoAlimento.equals("XY")) {
-            seTransforma = true;
+            seTransforma = true; // Se transformará en Zángano solo con XY
+        } else if (tipoHormiga.equals("Zángano") && ingestaNativa.equals("Omnívoro") && genoAlimento.equals("XX")) {
+            vive = true; // El Zángano sobrevive si come Omnívoro con XX
         }
 
         // Actualizar el estado y la alimentación en la tabla
@@ -243,14 +239,14 @@ public class EcuaAntPanel extends JPanel implements IEntomologo {
 
         // Si la hormiga se transforma, actualizar tipo y sexo
         if (seTransforma) {
-            modeloTabla.setValueAt("Soldado", filaSeleccionada, 1); // Cambiar tipo
-            modeloTabla.setValueAt("MACHO", filaSeleccionada, 2);   // Cambiar sexo
+            modeloTabla.setValueAt("Zángano", filaSeleccionada, 1); // Cambiar tipo a Zángano
+            modeloTabla.setValueAt("MACHO", filaSeleccionada, 2);   // Cambiar sexo a MACHO
         }
 
         // Mostrar mensaje del resultado
         String mensaje;
         if (seTransforma) {
-            mensaje = String.format("%s, alimentada y transformada a Soldado MACHO", tipoHormiga);
+            mensaje = String.format("%s, alimentada y transformada a Zángano MACHO", tipoHormiga);
         } else if (vive) {
             mensaje = String.format("%s, alimentada", tipoHormiga);
         } else {
