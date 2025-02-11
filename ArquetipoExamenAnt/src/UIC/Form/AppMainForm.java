@@ -3,7 +3,6 @@ package UIC.Form;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.io.IOException;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -15,7 +14,7 @@ public class AppMainForm extends JFrame{
         customizeComponent(tilteApp);
         pnlMenu.btnHome.addActionListener(      e -> setPanel(new AppMainPanel())); 
         pnlMenu.btnHomiga.addActionListener ( e -> setPanel(new HormigaPanel())); 
-       // pnlMenu.btnPersona.addActionListener(   e -> { IAStyle.showMsgError("mensaje de error");}); 
+        pnlMenu.btnEcuaAnt.addActionListener( e -> setPanel(new EcuaAntPanel()));
     }
 
     private void setPanel(JPanel formularioPanel) {

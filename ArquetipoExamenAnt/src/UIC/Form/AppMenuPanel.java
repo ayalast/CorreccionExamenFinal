@@ -1,21 +1,21 @@
 package UIC.Form;
 
+import Infra.Style;
+import UIC.CustomerControl.PatButton;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.io.IOException;
-
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import Infra.Style;
-import UIC.CustomerControl.PatButton;
 
 public class AppMenuPanel extends JPanel {
     public  PatButton   
             btnHome     = new PatButton(" Home"),
-            btnHomiga   = new PatButton(" Hormiga ");
+            btnHomiga   = new PatButton(" Hormiga "),
+            btnEcuaAnt  = new PatButton(" EcuaAnt 2K24A ");
 
     public AppMenuPanel() {
         customizeComponent();
@@ -34,6 +34,7 @@ public class AppMenuPanel extends JPanel {
             add(new JLabel(new ImageIcon(logo)));
             add(btnHome);
             add(btnHomiga);
+            add(btnEcuaAnt);
         } catch (IOException e) {
             Style.showMsgError("No se encuentra la imagen");
         }
