@@ -213,6 +213,16 @@ public class EcuaAntPanel extends JPanel implements IEntomologo {
             return;
         }
 
+        // Verificar si la hormiga ya está muerta
+        String estadoActual = (String) modeloTabla.getValueAt(filaSeleccionada, 4);
+        if (estadoActual.equals("MUERTA")) {
+            JOptionPane.showMessageDialog(this,
+                "No se puede alimentar a una hormiga muerta",
+                "Acción no permitida",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         String tipoHormiga = (String) modeloTabla.getValueAt(filaSeleccionada, 1);
         String ingestaNativa = (String) cmbIngestaNativa.getSelectedItem();
         String genoAlimento = (String) cmbGenoAlimento.getSelectedItem();
@@ -224,12 +234,18 @@ public class EcuaAntPanel extends JPanel implements IEntomologo {
         boolean vive = false;
         boolean seTransforma = false;
         
-        // Caso B: HZángano - Omnívoro - inyectada con XX
-        if (tipoHormiga.equals("Larva") && ingestaNativa.equals("Omnívoro") && genoAlimento.equals("XY")) {
-            vive = true;
-            seTransforma = true; // Se transformará en Zángano solo con XY
-        } else if (tipoHormiga.equals("Zángano") && ingestaNativa.equals("Omnívoro") && genoAlimento.equals("XX")) {
-            vive = true; // El Zángano sobrevive si come Omnívoro con XX
+        // Reglas de supervivencia y transformación
+        if (tipoHormiga.equals("Larva")) {
+            if (ingestaNativa.equals("Nectarívoros")) {
+                // La larva sobrevive con Nectarívoros y cualquier genoalimento
+                vive = true;
+            } else if (ingestaNativa.equals("Omnívoro") && genoAlimento.equals("XY")) {
+                // La larva se transforma en Zángano
+                vive = true;
+                seTransforma = true;
+            }
+        } else if (tipoHormiga.equals("Zángano") && ingestaNativa.equals("Omnívoro") && genoAlimento.equals("XY")) {
+            vive = true; // El Zángano sobrevive si come Omnívoro con XY
         }
 
         // Actualizar el estado y la alimentación en la tabla
