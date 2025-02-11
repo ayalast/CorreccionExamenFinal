@@ -1,18 +1,19 @@
 package UIC.Form;
 
+import BLC.Interface.IEntomologo;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
 
-public class EcuaAntPanel extends JPanel {
+public class EcuaAntPanel extends JPanel implements IEntomologo {
     private JComboBox<String> cmbGenoAlimento;
     private JComboBox<String> cmbIngestaNativa;
     private JLabel lblStatus;
     private JPanel pnlGenoHormiguero;
     private JTable tblHormigas;
     private DefaultTableModel modeloTabla;
-    private JButton btnCrearLarva, btnAlimentar, btnEliminar, btnGuardar;
+    private JButton btnCrearLarva, btnAlimentar, btnEliminar, btnGuardar, btnEntrenar;
     private static final String RESOURCE_PATH = "/UIC/Resource/";
     private static final Color LIGHT_BLUE = new Color(230, 240, 255);
     private static final Color SELECTED_BLUE = new Color(200, 220, 255);
@@ -58,7 +59,7 @@ public class EcuaAntPanel extends JPanel {
         pnlGenoHormiguero.setLayout(new BorderLayout(5, 5));
 
         // Tabla
-        String[] columnas = {"IdHormiga", "TipoHormiga", "Sexo", "Alimentación", "Estado"};
+        String[] columnas = {"IdHormiga", "TipoHormiga", "Sexo", "Alimentación", "Estado", "Entrenada"};
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -119,11 +120,20 @@ public class EcuaAntPanel extends JPanel {
         btnAlimentar = createStyledButton("Alimentar");
         btnEliminar = createStyledButton("Eliminar");
         btnGuardar = createStyledButton("Guardar");
+        btnEntrenar = createStyledButton("Entrenar");
+
+        // Agregar action listeners
+        btnCrearLarva.addActionListener(e -> crearLarva());
+        btnAlimentar.addActionListener(e -> alimentarHormiga());
+        btnEliminar.addActionListener(e -> eliminarHormiga());
+        btnGuardar.addActionListener(e -> guardarHormiguero());
+        btnEntrenar.addActionListener(e -> entrenarHormiga());
 
         pnlBotones.add(btnCrearLarva);
         pnlBotones.add(btnAlimentar);
         pnlBotones.add(btnEliminar);
         pnlBotones.add(btnGuardar);
+        pnlBotones.add(btnEntrenar);
         pnlInferior.add(pnlBotones);
 
         pnlGenoHormiguero.add(pnlInferior, BorderLayout.SOUTH);
@@ -140,9 +150,9 @@ public class EcuaAntPanel extends JPanel {
         add(statusPanel, BorderLayout.SOUTH);
 
         // Agregar datos iniciales
-        modeloTabla.addRow(new Object[]{"1", "Larva", "Asexual", "", "Viva"});
-        modeloTabla.addRow(new Object[]{"2", "Larva", "Asexual", "", "Viva"});
-        modeloTabla.addRow(new Object[]{"3", "Larva", "Asexual", "", "Viva"});
+        modeloTabla.addRow(new Object[]{"1", "Larva", "Asexual", "", "Viva", "NO"});
+        modeloTabla.addRow(new Object[]{"2", "Larva", "Asexual", "", "Viva", "NO"});
+        modeloTabla.addRow(new Object[]{"3", "Larva", "Asexual", "", "Viva", "NO"});
     }
 
     private JButton createStyledButton(String text) {
@@ -157,5 +167,195 @@ public class EcuaAntPanel extends JPanel {
         return button;
     }
 
-    // ... rest of the code (event handlers) stays the same ...
+    private void crearLarva() {
+        int opcion = JOptionPane.showConfirmDialog(
+            this,
+            "¿Está seguro de crear una Hormiga larva?",
+            "Confirmar Creación",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (opcion == JOptionPane.YES_OPTION) {
+            // Obtener el siguiente ID secuencial
+            int nextId = modeloTabla.getRowCount() + 1;
+            
+            // Crear nuevo registro
+            Object[] newRow = {
+                nextId,          // IdHormiga (secuencial)
+                "Larva",         // TipoHormiga
+                "Asexual",       // Sexo
+                "",             // Alimentación (vacío inicialmente)
+                "VIVA",          // Estado
+                "NO"            // Entrenada
+            };
+            
+            // Agregar el registro a la tabla
+            modeloTabla.addRow(newRow);
+            
+            // Mostrar mensaje de confirmación
+            JOptionPane.showMessageDialog(
+                this,
+                "HORMIGA LARVA, agregada al hormiguero",
+                "Creación Exitosa",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        }
+    }
+
+    private void alimentarHormiga() {
+        int filaSeleccionada = tblHormigas.getSelectedRow();
+        if (filaSeleccionada == -1) {
+            JOptionPane.showMessageDialog(this, 
+                "Por favor, seleccione una hormiga para alimentar", 
+                "Selección requerida", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String tipoHormiga = (String) modeloTabla.getValueAt(filaSeleccionada, 1);
+        String ingestaNativa = (String) cmbIngestaNativa.getSelectedItem();
+        String genoAlimento = (String) cmbGenoAlimento.getSelectedItem();
+        
+        // Preparar la cadena de alimentación
+        String alimentacion = String.format("%s inyectada con %s", ingestaNativa, genoAlimento);
+        
+        // Verificar si la hormiga vive según las reglas
+        boolean vive = false;
+        boolean seTransforma = false;
+        
+        // Caso A: Reglas de supervivencia
+        if (tipoHormiga.equals("Larva") && ingestaNativa.equals("Nectarívoros")) {
+            vive = true; // Sobrevive con cualquier genoalimento (X, XY, XX)
+        } else if (tipoHormiga.equals("Soldado") && ingestaNativa.equals("Carnívoro") && genoAlimento.equals("XY")) {
+            vive = true;
+        }
+        
+        // Verificar transformación
+        if (vive && tipoHormiga.equals("Larva") && ingestaNativa.equals("Carnívoro") && genoAlimento.equals("XY")) {
+            seTransforma = true;
+        }
+
+        // Actualizar el estado y la alimentación en la tabla
+        String estado = vive ? "VIVA" : "MUERTA";
+        modeloTabla.setValueAt(alimentacion, filaSeleccionada, 3);
+        modeloTabla.setValueAt(estado, filaSeleccionada, 4);
+
+        // Si la hormiga se transforma, actualizar tipo y sexo
+        if (seTransforma) {
+            modeloTabla.setValueAt("Soldado", filaSeleccionada, 1); // Cambiar tipo
+            modeloTabla.setValueAt("MACHO", filaSeleccionada, 2);   // Cambiar sexo
+        }
+
+        // Mostrar mensaje del resultado
+        String mensaje;
+        if (seTransforma) {
+            mensaje = String.format("%s, alimentada y transformada a Soldado MACHO", tipoHormiga);
+        } else if (vive) {
+            mensaje = String.format("%s, alimentada", tipoHormiga);
+        } else {
+            mensaje = String.format("Ups...! tenemos problema con la alimentación de la %s", tipoHormiga);
+        }
+
+        JOptionPane.showMessageDialog(this, 
+            mensaje,
+            "Resultado de Alimentación",
+            vive ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void eliminarHormiga() {
+        int filaSeleccionada = tblHormigas.getSelectedRow();
+        if (filaSeleccionada == -1) {
+            JOptionPane.showMessageDialog(this, 
+                "Por favor, seleccione una hormiga para eliminar", 
+                "Selección requerida", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String tipoHormiga = (String) modeloTabla.getValueAt(filaSeleccionada, 1);
+        
+        int opcion = JOptionPane.showConfirmDialog(
+            this,
+            String.format("¿Está seguro de eliminar la %s?", tipoHormiga),
+            "Confirmar Eliminación",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (opcion == JOptionPane.YES_OPTION) {
+            // Cambiar el estado a MUERTA
+            modeloTabla.setValueAt("MUERTA", filaSeleccionada, 4);
+        }
+    }
+
+    private void guardarHormiguero() {
+        try {
+            // Aquí iría la lógica para guardar en la base de datos
+            // Por ahora simulamos el guardado
+            boolean exitoGuardado = true; // Simular éxito del guardado
+            
+            if (exitoGuardado) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "HORMIGUERO respaldado",
+                    "Guardado Exitoso",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+            } else {
+                throw new Exception("Error al guardar en la base de datos");
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Ups...! tenemos problema en el hormiguero",
+                "Error al Guardar",
+                JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
+    @Override
+    public void educar(String tipoHormiga) {
+        // Este método será llamado por el botón Entrenar
+        if (tipoHormiga.equalsIgnoreCase("Larva")) {
+            JOptionPane.showMessageDialog(this,
+                "Las larvas no pueden ser entrenadas",
+                "Entrenamiento no permitido",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        // La hormiga ha sido entrenada exitosamente
+        JOptionPane.showMessageDialog(this,
+            tipoHormiga + " entrenada y sumisa",
+            "Entrenamiento exitoso",
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void entrenarHormiga() {
+        int filaSeleccionada = tblHormigas.getSelectedRow();
+        if (filaSeleccionada == -1) {
+            JOptionPane.showMessageDialog(this,
+                "Por favor, seleccione una hormiga para entrenar",
+                "Selección requerida",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String tipoHormiga = (String) modeloTabla.getValueAt(filaSeleccionada, 1);
+        
+        if (tipoHormiga.equalsIgnoreCase("Larva")) {
+            JOptionPane.showMessageDialog(this,
+                "Las larvas no pueden ser entrenadas",
+                "Entrenamiento no permitido",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Entrenar la hormiga
+        educar(tipoHormiga);
+        
+        // Actualizar el estado de entrenamiento en la tabla
+        modeloTabla.setValueAt("SI", filaSeleccionada, 5);
+    }
 } 
